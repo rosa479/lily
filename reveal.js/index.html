@@ -1,0 +1,145 @@
+<!doctype html>
+<html lang="en">
+	<head>
+		<meta charset="utf-8">
+		<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+
+		<title>reveal.js</title>
+
+		<link rel="stylesheet" href="dist/reset.css">
+		<link rel="stylesheet" href="dist/reveal.css">
+		<link rel="stylesheet" href="dist/theme/dracula.css">
+        <link rel="stylesheet" href="dist/custom.css">
+
+		<!-- Theme used for syntax highlighted code -->
+		<link rel="stylesheet" href="plugin/highlight/monokai.css">
+	</head>
+	<body>
+		<div class="reveal">
+			<div class="slides">
+                <section>
+                    <h2>Interpreting Compilers and Compiling Interpreters</h2>
+                    <p>By yours truly</p>
+                </section>
+                <section>
+                    Consider this C++ snippet
+                    <pre><code class="language-cpp" data-line-numbers="2">int main() {
+    return 57;
+}
+                    </code></pre>
+                    Let's compile this and execute it
+                    <pre><code class="language-bash" data-line-numbers="1-2|3-4">$ g++ -o hello hello.cpp
+$ ./hello
+$ echo $? # shows return value of last command
+  57
+                    </code></pre>
+                </section>
+                <section>
+                    <p>How did our code in "English" turn into 0s and 1s?</p>
+                    <p class="fragment fade-in">What happened in between?</p>
+                    <p class="fragment fade-in">What does it mean to <b>compile?</b></p>
+                </section>
+                <section>
+                    <p>In simple terms, a Compiler is a translater, that takes code written in a high-level language (return blablabla) and converts it into a low-level language that a computer can understand (01010101...)</p>
+                    <p class="fragment fade-in">This is a one-time process, and the output is a file that can be executed multiple times</p>
+                    <p class="fragment fade-in">But this isn't the only translator in the market</p>
+                    <p class="fragment fade-in">Enter the <b>Interpreter</b></p>
+                </section>
+                <section>
+                    <p>Instead of translating the entire code at once, an Interpreter translates the code line-by-line, executing it as it goes</p>
+                    <p class="fragment fade-in">with some trade-offs...</p>
+                </section>
+<section>
+    <h2>Compiler vs. Interpreter</h2>
+        <table style="font-size: 0.9em;">
+        <thead>
+            <tr>
+                <th>Compiler</th>
+                <th>Interpreter</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr>
+                <td>Compiles the whole code before execution</td>
+                <td>Executes code line-by-line</td>
+            </tr>
+            <tr>
+                <td>Faster execution</td>
+                <td>Slower execution</td>
+            </tr>
+            <tr>
+                <td>Displays all errors after compilation</td>
+                <td>Stops at the first error</td>
+            </tr>
+            <tr>
+                <td>No source code needed after compilation</td>
+                <td>Requires source code every time</td>
+            </tr>
+            <tr>
+                <td>Used in production (C, C++, C#)</td>
+                <td>Used in development (Python, Ruby, Perl)</td>
+            </tr>
+        </tbody>
+    </table>
+</section>
+
+<!-- Compilation Flow Slide -->
+<section>
+    <h2 class="fragment fade-in move-up" data-fragment-index="0">Compilation Flow</h2>
+    <ol style="font-size: 0.8em;">
+        <li class="fragment fade-in" data-fragment-index="1"><strong>Lexing</strong> – Convert code into tokens.</li>
+        <li class="fragment fade-in" data-fragment-index="2"><strong>Parsing</strong> – Generate AST.</li>
+        <li class="fragment fade-in" data-fragment-index="3"><strong>Semantic Analysis</strong> – Check correctness.</li>
+        <li class="fragment fade-in" data-fragment-index="4"><strong>IR Generation</strong> – Convert AST to IR.</li>
+        <li class="fragment fade-in" data-fragment-index="5"><strong>Optimization</strong> – Improve performance.</li>
+        <li class="fragment fade-in" data-fragment-index="6"><strong>Code Generation</strong> – Convert IR to assembly.</li>
+        <li class="fragment fade-in" data-fragment-index="7"><strong>Assembly to Machine Code</strong>:
+            <ul>
+                <li><strong>Assembler</strong> – Assembly → Object code.</li>
+                <li><strong>Linker</strong> – Creates executable.</li>
+            </ul>
+        </li>
+        <li class="fragment fade-in" data-fragment-index="8"><strong>Execution</strong> – CPU runs machine code.</li>
+    </ol>
+</section>
+
+<!-- Interpretation Flow Slide -->
+<section>
+    <h2 class="fragment fade-in move-up" data-fragment-index="0">Interpretation Flow</h2>
+    <ol style="font-size: 0.8em;">
+        <li class="fragment fade-in" data-fragment-index="1"><strong>Lexing</strong> – Convert code into tokens.</li>
+        <li class="fragment fade-in" data-fragment-index="2"><strong>Parsing</strong> – Generate AST.</li>
+        <li class="fragment fade-in" data-fragment-index="3"><strong>Semantic Analysis</strong> – Check correctness.</li>
+        <li class="fragment fade-in" data-fragment-index="4"><strong>Execution</strong>:
+            <ul>
+                <li><strong>Interpreter</strong> – Executes code line by line.</li>
+                <li><strong>Bytecode</strong> – Runs on VM (e.g., CPython, JVM).</li>
+                <li><strong>JIT</strong> – Converts hot code to machine code.</li>
+            </ul>
+        </li>
+    </ol>
+</section>
+
+                
+<section>
+<h1>Compilers</h1>
+</section>
+            </div>
+		</div>
+
+		<script src="dist/reveal.js"></script>
+		<script src="plugin/notes/notes.js"></script>
+		<script src="plugin/markdown/markdown.js"></script>
+		<script src="plugin/highlight/highlight.js"></script>
+		<script>
+			// More info about initialization & config:
+			// - https://revealjs.com/initialization/
+			// - https://revealjs.com/config/
+			Reveal.initialize({
+				hash: true,
+				// Learn about plugins: https://revealjs.com/plugins/
+				plugins: [ RevealMarkdown, RevealHighlight, RevealNotes ]
+			});
+		</script>
+	</body>
+</html>

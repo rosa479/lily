@@ -1,0 +1,8 @@
+.move-up {
+    transform: translateY(20vh);
+    transition: transform 0.8s ease-in-out;
+}
+
+.fragment.visible.move-up {
+    transform: translateY(0);
+}
