@@ -172,12 +172,23 @@ main:
                         <p class="fragment fade-in">Headers change, from &lt;windows.h&gt; to &lt;unistd.h&gt;</p>
                         <p class="fragment fade-in">and so do file system conventions, from "C:\\Users\\" to "/home/user/"</p>
                     </section>
-                    <section>
-                        We will be using Linux, g++ and NASM (Netwide Assembler) for the rest of the presentation
+                    <section style="font-size: 0.9em;">
+                        <p>Data can be stored in memory and can be accessed using memory addresses</p>
+                        <p class="fragment fade-in">Reading and storing data in this way is slow</p>
+                        <p class="fragment fade-in">A much faster alternative are <b>registers</b> which are internal storage locations of the processor</p>
+                        <p class="fragment fade-in">Registers are the processor's personal notepad for storing information temporarily, though few in number</p>
+                        <p class="fragment fade-in">Examples - <b>RAX</b>, <b>ESP</b>, <b>DS</b></p>
                     </section>
 
+                    <section style="font-size: 0.9em;">
+                        <p><b>System Calls</b> are APIs for the interface between the user space and the kernel space</p>
+                        <p class="fragment fade-in">Every system call has a unique number associated with it</p>
+                        <p class="fragment fade-in">This number is stored in the <b>EAX</b> or <b>RAX</b> with arguments passed to other general purpose registers and stack as needed</p>
+                        <p class="fragment fade-in">The <b>syscall</b> instruction is used to trigger a system call</p>
+                    </section>
+                
                     <section class="no-auto-fragments">
-                        <p>Let's take a look at the assembly equivalent of our C++ snippet<p>
+                        <p>Let's take a look at the (simplified) assembly equivalent of our C++ snippet<p>
                             <pre><code class="x86asm"  data-line-numbers>global _start
 _start:
    mov rax, 60
@@ -241,8 +252,18 @@ _start:
             </code></pre>
 
                     </section>
-
-
+                    <section>
+                        <p>Let's compile and run this assembly code</p>
+                        <div class="fragment fade-in"><p>The assembler, <b>nasm</b>, translated the assembly code into machine code and generates and object file</p>
+                        <pre><code class="bash">nasm -f elf64 -o hello.o hello.s</code></pre></div>
+                        <div class="fragment fade-in">
+                            <p>The linker, <b>ld</b> takes the object file and links it with the necessary library to create an executable file</p>
+                            <pre><code class="bash">ld -o hello hello.o</code></pre></div>
+                    </section>
+                    <section>Questions about how the variables are stored in memory, how mathematical operations happens still remain unanswered, but we will get back to them!</section>
+                </section>
+                <section>
+                    Compiler
                 </section>
 
             </div>
