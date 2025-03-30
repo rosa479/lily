@@ -21,7 +21,7 @@
                     <h2>Interpreting Compilers and Compiling Interpreters</h2>
                     <p>By yours truly</p>
                 </section>
-                <section>
+                <section class="no-auto-fragments">
                     Consider this C++ snippet
                     <pre><code class="language-cpp" data-line-numbers="2">int main() {
     return 57;
@@ -124,6 +124,127 @@ $ echo $? # shows return value of last command
 <section>
 <h1>Compilers</h1>
 </section>
+
+                <section>
+                    <p style="font-size:0.8em">Compiler converts the code into assembly language, which is then converted into machine code by the assembler
+                    <br>What does the assembly code for our C++ program look like?
+                        We can run the following command to get the assembly code</p>
+                    <pre><code class="language-bash">g++ -S -o hello.s hello.cpp</code></pre>
+    <div style="display: flex; gap: 20px;">
+        <div style="width: 50%;">
+            <h5>C++ Code</h5>
+            <pre><code class="language-cpp" data-trim data-line-numbers>int main() {
+    return 57;
+}</code></pre>
+        </div>
+        <div style="width: 50%;">
+            <h5>Assembly</h5>
+            <pre><code class="x86asm" data-line-numbers>	.file	"hello.cpp"
+	.text
+	.globl	main
+	.type	main, @function
+main:
+.LFB0:
+	.cfi_startproc
+	endbr64
+	; and so on...
+            </code></pre>
+        </div>
+    </div>
+
+                </section>
+                <section>
+                <h2> A brief look at assembly </h2>
+                    <section>
+                        <p>Assembly language is a low-level programming language that is a human-readable version of machine code</p>
+                        <p class="fragment fade-in">It uses mnemonics to represent machine instructions (like <b>MOV</b>, <b>ADD</b>, <b>SUB</b>)</p>
+                        <p class="fragment fade-in">It requires manual handling of CPU registers and memory addresses </p>
+                    </section>
+                    <section>
+                        Each assembly language only works for a specific CPU architecture
+                        <p class="fragment fade-in">x86-64 for Intel</p>
+                        <p class="fragment fade-in">ARM for Apple M-series</p>
+                    </section>
+                    <section>
+                        Compilers must generate assembly code that is compatible with the target architecture and OS
+                        <p class="fragment fade-in">g++ will give a.out in Linux, a.exe in Windows</p>
+                        <p class="fragment fade-in">Each OS has different syscalls(?)</p>
+                        <p class="fragment fade-in">Headers change, from &lt;windows.h&gt; to &lt;unistd.h&gt;</p>
+                        <p class="fragment fade-in">and so do file system conventions, from "C:\\Users\\" to "/home/user/"</p>
+                    </section>
+                    <section>
+                        We will be using Linux, g++ and NASM (Netwide Assembler) for the rest of the presentation
+                    </section>
+
+                    <section class="no-auto-fragments">
+                        <p>Let's take a look at the assembly equivalent of our C++ snippet<p>
+                            <pre><code class="x86asm"  data-line-numbers>global _start
+_start:
+   mov rax, 60
+   mov rdi, 57
+   syscall
+            </code></pre>
+
+                    </section>
+                    <section class="no-auto-fragments">
+                        <p>This tells the assembler to expose <b>_start</b> as the global label so that the linker can recognise it as the entry point of the program<p>
+                            <pre><code class="x86asm"  data-line-numbers="1">global _start
+_start:
+   mov rax, 60
+   mov rdi, 57
+   syscall
+            </code></pre>
+
+                    </section>
+                    <section class="no-auto-fragments">
+                        <p>This defines the <b>_start</b> label, which is the entry point of our program<p>
+                            <pre><code class="x86asm"  data-line-numbers="2">global _start
+_start:
+   mov rax, 60
+   mov rdi, 57
+   syscall
+            </code></pre>
+
+                    </section>
+
+                    <section class="no-auto-fragments">
+                        <p>Moves the value <b>60</b> into the register <b>rax</b><p>
+                        <p>In Linux x86-64, <b>60</b> is the syscall number for <b>exit</b></p>
+                            <pre><code class="x86asm"  data-line-numbers="3">global _start
+_start:
+   mov rax, 60
+   mov rdi, 57
+   syscall
+            </code></pre>
+
+                    </section>
+
+                    <section class="no-auto-fragments">
+                        <p>Moves the value <b>57</b> into the register <b>rdi</b><p>
+                        <p>The <b>exit</b> syscall uses <b>rdi</b> as its first argument, which represent the exit status of the program</p>
+                            <pre><code class="x86asm"  data-line-numbers="4">global _start
+_start:
+   mov rax, 60
+   mov rdi, 57
+   syscall
+            </code></pre>
+
+                    </section>
+
+                    <section class="no-auto-fragments">
+                        <p>Triggers a system call. Since <b>rax</b> contains 60, this executes <b>exit(57)</b> syscall, terminating the program with exit code <b>57</b><p>
+                            <pre><code class="x86asm"  data-line-numbers="5">global _start
+_start:
+   mov rax, 60
+   mov rdi, 57
+   syscall
+            </code></pre>
+
+                    </section>
+
+
+                </section>
+
             </div>
 		</div>
 
@@ -131,15 +252,44 @@ $ echo $? # shows return value of last command
 		<script src="plugin/notes/notes.js"></script>
 		<script src="plugin/markdown/markdown.js"></script>
 		<script src="plugin/highlight/highlight.js"></script>
-		<script>
-			// More info about initialization & config:
-			// - https://revealjs.com/initialization/
-			// - https://revealjs.com/config/
-			Reveal.initialize({
-				hash: true,
-				// Learn about plugins: https://revealjs.com/plugins/
-				plugins: [ RevealMarkdown, RevealHighlight, RevealNotes ]
-			});
-		</script>
+
+<script>
+    class RevealAutoFragment {
+        constructor(delayBetweenFragments = 1000, exceptionClass = "no-auto-fragments") {
+            this.delayBetweenFragments = delayBetweenFragments;
+            this.exceptionClass = exceptionClass;
+            this.init();
+        }
+
+        init() {
+            Reveal.on('slidechanged', event => this.handleSlideChange(event));
+        }
+
+        handleSlideChange(event) {
+            if (event.currentSlide.classList.contains(this.exceptionClass)) {
+                return; // Skip this slide if it has the exception class
+            }
+
+            let fragments = event.currentSlide.querySelectorAll('.fragment');
+            let delay = 500; // Initial delay before first fragment appears
+
+            fragments.forEach(fragment => {
+                setTimeout(() => {
+                    fragment.classList.add('visible');
+                }, delay);
+                delay += this.delayBetweenFragments;
+            });
+        }
+    }
+
+    Reveal.initialize({
+        hash: true,
+        autoPlayMedia: true,
+        plugins: [RevealMarkdown, RevealHighlight, RevealNotes]
+    });
+
+    new RevealAutoFragment(500, "no-auto-fragments"); // Exclude slides with this class
+</script>
+
 	</body>
 </html>
