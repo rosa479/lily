@@ -83,26 +83,6 @@ $ echo $? # shows return value of last command
     </table>
 </section>
 
-<!-- Compilation Flow Slide -->
-<section>
-    <h2 class="fragment fade-in move-up" data-fragment-index="0">Compilation Flow</h2>
-    <ol style="font-size: 0.8em;">
-        <li class="fragment fade-in" data-fragment-index="1"><strong>Lexing</strong> – Convert code into tokens.</li>
-        <li class="fragment fade-in" data-fragment-index="2"><strong>Parsing</strong> – Generate AST.</li>
-        <li class="fragment fade-in" data-fragment-index="3"><strong>Semantic Analysis</strong> – Check correctness.</li>
-        <li class="fragment fade-in" data-fragment-index="4"><strong>IR Generation</strong> – Convert AST to IR.</li>
-        <li class="fragment fade-in" data-fragment-index="5"><strong>Optimization</strong> – Improve performance.</li>
-        <li class="fragment fade-in" data-fragment-index="6"><strong>Code Generation</strong> – Convert IR to assembly.</li>
-        <li class="fragment fade-in" data-fragment-index="7"><strong>Assembly to Machine Code</strong>:
-            <ul>
-                <li><strong>Assembler</strong> – Assembly → Object code.</li>
-                <li><strong>Linker</strong> – Creates executable.</li>
-            </ul>
-        </li>
-        <li class="fragment fade-in" data-fragment-index="8"><strong>Execution</strong> – CPU runs machine code.</li>
-    </ol>
-</section>
-
 <!-- Interpretation Flow Slide -->
 <section>
     <h2 class="fragment fade-in move-up" data-fragment-index="0">Interpretation Flow</h2>
@@ -262,9 +242,180 @@ _start:
                     </section>
                     <section>Questions about how the variables are stored in memory, how mathematical operations happens still remain unanswered, but we will get back to them!</section>
                 </section>
-                <section>
-                    Compiler
+
+<section>
+    <h2 class="fragment fade-in move-up" data-fragment-index="0">Compilation Flow</h2>
+    <ol style="font-size: 0.8em;">
+        <li class="fragment fade-in" data-fragment-index="1"><strong>Lexing</strong> – Convert code into tokens.</li>
+        <li class="fragment fade-in" data-fragment-index="2"><strong>Parsing</strong> – Generate AST.</li>
+        <li class="fragment fade-in" data-fragment-index="3"><strong>Semantic Analysis</strong> – Check correctness.</li>
+        <li class="fragment fade-in" data-fragment-index="4"><strong>IR Generation</strong> – Convert AST to IR.</li>
+        <li class="fragment fade-in" data-fragment-index="5"><strong>Optimization</strong> – Improve performance.</li>
+        <li class="fragment fade-in" data-fragment-index="6"><strong>Code Generation</strong> – Convert IR to assembly.</li>
+        <li class="fragment fade-in" data-fragment-index="7"><strong>Assembly to Machine Code</strong>:
+            <ul>
+                <li><strong>Assembler</strong> – Assembly → Object code.</li>
+                <li><strong>Linker</strong> – Creates executable.</li>
+            </ul>
+        </li>
+        <li class="fragment fade-in" data-fragment-index="8"><strong>Execution</strong> – CPU runs machine code.</li>
+    </ol>
+</section>
+
+                <section style="font-size: 0.9em;">
+                    <b>Symbol Table</b> is a data structure used by compilers to store information about the variables, functions, and other identifiers in the program.
+                    This information is gathered during the analysis phase and used during the code generation phase.
+                    <p class="fragment fade-in">During <b>Lexing</b>, entries for identifiers are added to the symbol table</p>
+                    <p class="fragment fade-in">During <b>Parsing</b>, information about the type of the identifier is added</p>
+                    <p class="fragment fade-in">During <b>Semantic analysis</b>, the symbol table is used to check for undeclared variables, type mismatches, etc.</p>
                 </section>
+                <section>
+                    During <b>IR Generation</b>, Symbol Table is used to generate intermediate representation of the code
+                    <p class="fragment fade-in">During <b>Optimization</b>, the symbol table is used to track the usage of variables and functions</p>
+                    <p class="fragment fade-in">During <b>Code Generation</b>, the symbol table is used to generate assembly code using the addresses of the variables and functions</p>
+                </section>
+
+                <section>
+                    <b>Lexing</b> is the process of converting the code into tokens and removes comments and whitespaces (space, tab, newline etc.)<br><br>
+                    <p>Types of Tokens in a Compiler</p>
+  <ul>
+    <li class="fragment fade-in">Keywords (e.g., <code>if</code>, <code>else</code>, <code>while</code>)</li>
+    <li class="fragment fade-in">Identifiers (e.g., <code>variableName</code>, <code>functionName</code>)</li>
+    <li class="fragment fade-in">Operators (e.g., <code>+</code>, <code>-</code>, <code>*</code>, <code>/</code>)</li>
+    <li class="fragment fade-in">Literals (e.g., <code>42</code>, <code>"Hello"</code>, <code>true</code>)</li>
+    <li class="fragment fade-in">Punctuation (e.g., <code>;</code>, <code>,</code>, <code>{}</code>, <code>()</code>)</li>
+  </ul>
+</section>
+
+<section>
+  <h2>Tokenization of C Code</h2>
+  <div style="display: flex; justify-content: space-around; text-align: left;">
+    <!-- Left Column: Code -->
+    <div style="width: 45%;">
+      <b>Code</b>
+<pre><code class="language-c">
+int main()
+{
+    int x, a=5, b=7;
+    x = 4*a + b;
+    printf("x is %d", x);
+}
+      </code></pre>
+    </div>
+
+    <!-- Right Column: Tokens -->
+    <div style="width: 45%;">
+      <p><strong>Keywords:</strong> <span class="fragment fade-in"><code>int</code>, <code>int</code></span></p>
+      <p><strong>Identifiers:</strong> <span class="fragment fade-in"><code>main</code>, <code>x</code>, <code>a</code>, <code>b</code>, <code>x</code>, <code>a</code>, <code>b</code>, <code>printf</code>, <code>x</code></span></p>
+      <p><strong>Operators:</strong> <span class="fragment fade-in"><code>=</code>, <code>=</code>, <code>=</code>, <code>*</code>, <code>+</code></span></p>
+      <p><strong>Literals:</strong> <span class="fragment fade-in"><code>5</code>, <code>7</code>, <code>4</code>, <code>"x is %d"</code></span></p>
+      <p><strong>Punctuation:</strong> <span class="fragment fade-in"><code>(</code>, <code>)</code>, <code>{</code>, <code>,</code>, <code>,</code>, <code>;</code>, <code>;</code>, <code>(</code>, <code>,</code>, <code>)</code>, <code>;</code>, <code>}</code></span></p>
+    </div>
+  </div>
+</section>
+
+                <section>
+                    <p><b>Parsing</b> is the process of converting the tokens into a tree-like structure called the <b>Abstract Syntax Tree (AST)</b></p>
+                    <p class="fragment fade-in">The AST is a representation of the code that is easier to work with</p>
+                    <p class="fragment fade-in">It is used to check the correctness of the code and generate the intermediate representation</p>
+                </section>
+                <section>
+                    This is done using the use of <b>Context-Free Grammars</b>
+                    <p class="fragment fade-in">The grammar defines the syntax of the language</p>
+                    <p class="fragment fade-in">The grammar consists of Terminals and Non-terminals, Production Rules, and Start Symbol</p>
+                </section>
+
+<section>
+                    <h3>Parse Tree, Code, and AST for <code>return(57);</code></h3>
+                    <div style="display: flex; justify-content: space-around; text-align: left;">
+    <div>
+      <b>Code</b>
+                            <pre><code style="min-width: 170px; text-align: center;">
+return(57);
+      </code></pre>
+    </div>
+    <div>
+      <b>Parse Tree</b>
+                            <pre><code style="min-width: 270px;">
+         stmt
+          │
+   returnStmt
+      ┌────┴────┐
+   RETURN    expr
+      │         │
+   LPAREN     NUMBER
+      │         │
+      (         57
+      │         
+   RPAREN
+      │
+   SEMI
+      </code></pre>
+    </div>
+    <div>
+      <b>AST</b>
+      <pre><code style="min-width: 170px;">
+  ReturnStmt
+     │
+    57
+      </code></pre>
+    </div>
+  </div>
+</section>
+
+<section>
+                    <h3>Parse Tree, Code, and AST for <br><code>x = a + b * 7;</code></h3>
+  <div style="display: flex; justify-content: space-around; text-align: left;">
+    <div>
+      <b>Code</b>
+      <pre><code style="min-width: 170px; text-align: center;">
+x = a + b * 7;
+      </code></pre>
+    </div>
+    <div>
+      <b>Parse Tree</b>
+      <pre><code style="min-width: 350px; min-height: 400px;">         stmt
+          │
+    assignmentStmt
+      ┌────┴────┐
+      ID       expr
+      │         │
+      x       ┌─┴─┐
+            expr  expr
+             │     │
+            ID  ┌──┴──┐
+            │   expr  NUMBER
+            a     │      │
+                 ID      7
+                 │
+                 b      </code></pre>
+    </div>
+    <div>
+      <b>AST</b>
+      <pre><code style="min-width: 170px;">
+  Assign(x)
+      │
+      +
+     / \
+    a   *
+       / \
+      b   7
+      </code></pre>
+    </div>
+  </div>
+</section>
+
+<section>
+                    <b>Semantic Analysis</b> is the process of checking the correctness of the code
+                    <p class="fragment fade-in">It does type checking, scope checking, name resolution, control flow analysis and type inference</p>
+                    <p class="fragment fade-in">It uses the AST and the symbol table to perform these checks</p>
+</section>
+
+<section>
+                    <b>Intermediate Representation (IR)</b> is a representation of the code that is easier to work with than the AST and is used to perform optimizations
+                    <p class="fragment fade-in">It allows for machine-independent optimizations</p>
+</section>
+
 
             </div>
 		</div>
