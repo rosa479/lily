@@ -134,9 +134,10 @@ main:
 
                 </section>
                 <section>
-                <h2> A brief look at assembly </h2>
+                    <h2> A brief look at assembly </h2> 
                     <section>
-                        <p>Assembly language is a low-level programming language that is a human-readable version of machine code</p>
+                        <p class = "fragment fade-in" style="font-size : 0.4em;">(Go Down ↓)</p>
+                        <p class = "fragment fade-in">Assembly language is a low-level programming language that is a human-readable version of machine code</p>
                         <p class="fragment fade-in">It uses mnemonics to represent machine instructions (like <b>MOV</b>, <b>ADD</b>, <b>SUB</b>)</p>
                         <p class="fragment fade-in">It requires manual handling of CPU registers and memory addresses </p>
                     </section>
@@ -592,6 +593,110 @@ int foo(void) {
                     <p class="fragment fade-in">Removing dead code can make the program smaller and faster</p>
                     
 </section>
+
+                <section>
+                    <b>Algebraic Transformations</b> involves simplifying expressions using algebraic rules<br><br>
+                    <pre class="fragment fade-in"><code class="language-python" data-trim data-line-numbers="|1|2|3|4|5|6|">
+a = b + 0           a = b
+b = c * 1           b = c
+c = d - 0           c = d
+t = x**2            t = x * x
+t = x * 2           t = x + x
+t = x * 8           t = x << 3
+                    </code></pre>
+                </section>
+
+            <section>
+                <h2>Object Code Generation</h2>
+                    <p class="fragment fade-in">This is the process of conversion of IR to assembly code, it involves :<p><ul style="font-size: 0.9em;">
+                    <li class="fragment fade-in">Mapping machine code instructions to IR instructions</li>
+                    <li class="fragment fade-in">Register Allocation and assignment</li>
+                    <li class="fragment fade-in">Machine Specific Optimizations to take advantage of the target architecture</li></ul>
+            </section>
+
+            <section>
+                <b>Mappings</b> for each instruction can be direct or complex depending on the architecture and data types (int, float, double ...)
+                <p class="fragment fade-in">Basic arithmetic and bitwise operations are usually direct (provided the registers are loaded properly)</p>
+                <p class="fragment fade-in">For example, the IR instruction <code>t1 = a + b</code> can be mapped to <code>ADD a, b, t1</code> in x86-64</p>
+                <p class="fragment fade-in">Complex operations like division are split into multiple instructions (as we will soon see...)</p>
+            </section>
+
+            <section>
+                <b>Register Allocation</b> is the process of assigning variables to registers
+                <p class="fragment fade-in">Registers are faster than memory, so the goal is to keep as many variables in registers as possible</p>
+                <p class="fragment fade-in">If there are more variables than registers, some variables will be stored in memory, this is called <b>spilling</b></p>
+            </section>
+
+            <section>
+                <section>
+                <b>Machine Specific Optimizations</b> are optimizations that take advantage of the target architecture
+                    <p class="fragment fade-in">Go down to see some examples</p>
+                </section>
+                <section style="font-size: 0.8em">
+                <b>Instruction Scheduling</b> is the process of reordering instructions to minimize the number of cycles
+                    <p class="fragment fade-in">This is done to take advantage of pipelining and out-of-order execution</p>
+                <div flex="1" class="fragment fade-in">
+                        <pre class="fragment fade-in"><code class="x86asm" data-line-numbers="1|1-2|1-2|2|3|4">mov eax, [mem]  ; Load from memory
+add eax, 1      ; Add 1
+sub ebx, 6      ; Subtract 6
+mov [mem], eax  ; Store to memory
+                    </code></pre>
+                </div>
+                <p class="fragment fade-in" style="font-size:0.8em">The above code can be reordered to take advantage of pipelining</p>
+                <div flex="1" class="fragment fade-in">
+                        <pre class="fragment fade-in"><code class="x86asm" data-line-numbers="1|1-2|1,3|3|4">mov eax, [mem]  ; Load from memory
+sub ebx, 6      ; Subtract 6, perform this while eax loads
+add eax, 1      ; Add 1
+mov [mem], eax  ; Store to memory
+                    </code></pre>
+                </div>
+                <p class="fragment fade-in">An independent instruction can be executed while the command executes</p>
+                </section>
+
+                <section style="font-size: 0.9em">
+                    <b>Vectorisation</b> is the process of converting scalar operations into vector operations
+                    <div flex="1" class="fragment fade-in">
+                        <pre class="fragment fade-in"><code class="x86asm" data-line-numbers>mov eax, [arr1]  ; Load from memory
+mov ebx, [arr2]  ; Load from memory
+add eax, ebx    ; Add
+mov [arr3], eax ; Store to memory
+                    </code></pre>
+                </div>
+                <p class="fragment fade-in">The operations are repeated for each element in the array</p>
+                <p class="fragment fade-in">The above code can be vectorised to take advantage of SIMD(Single Instruction, Multiple Data) instructions</p>
+                <div flex="1" class="fragment fade-in">
+                        <pre class="fragment fade-in"><code class="x86asm" data-line-numbers>movdqu xmm0, [arr1]   ; Load 4 packed integers from arr1
+movdqu xmm1, [arr2]   ; Load 4 packed integers from arr2
+paddd xmm0, xmm1      ; Add packed 32-bit integers
+movdqu [arr3], xmm0   ; Store result to arr3
+                    </code></pre>
+                </div>
+                </section>
+                <section style="font-size: 0.9em">
+                    <b>Loop Unrolling</b> is the process of duplicating the loop body to reduce the overhead of the loop
+                    <p class="fragment fade-in">This is done to reduce the number of branches and improve instruction cache usage</p>
+                    <p class="fragment fade-in">The loop body is duplicated and the loop counter is incremented by the number of unrolled iterations</p>
+                    <p class="fragment fade-in"><b>Inlining</b> is the process of replacing a function call with the function body</p>
+                    <p class="fragment fade-in">This is done to reduce the overhead of the function call</p>
+
+                </section>
+            </section>
+
+            <section>
+                <h3>Division v/s GCC</h3>
+                <p class="fragment fade-in" style="font-size:0.9em">Division is a very computationally expensive operation</p>
+                <p class="fragment fade-in" style="font-size:0.9em">So, GCC does black magic (math) to convert division into multiplication and bit shifts</p>
+                <p class="fragment fade-in" style="font-size:0.9em">A simple function which divides by 2006 looks something like this</p>
+                <pre class="fragment fade-in"><code class="x86asm" data-line-numbers>divideby2006(unsigned int):
+        mov     eax, edi
+        imul    rax, rax, 1096222959
+        shr     rax, 41
+        ret
+</code></pre>
+                n/2006 = ( n * 1096222959 ) >> 41 (How?)
+            </section>
+            
+
         </div>
 		</div>
 
