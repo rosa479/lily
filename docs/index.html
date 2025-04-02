@@ -416,8 +416,183 @@ x = a + b * 7;
                     <p class="fragment fade-in">It allows for machine-independent optimizations</p>
 </section>
 
+<section>
+                    <b> Three Address Code (TAC)</b> is a form of IR that uses at most three operands per instruction, with only one operator
+                    <div style="display: flex; justify-content: space-around; text-align: left;" class="fragment fade-in">
+    <div>
+                            <b>Code</b>
+                            <pre><code>x = (a + b) * c;
+                            </code></pre>
+    </div>
+    <div>
+                            <b>Three Address Code</b>
+                            <pre><code>t1 = a + b
+t2 = t1 * c
+x = t2
+                            </code></pre>
+    </div>
+    </div>
+                    <p class="fragment fade-in">Each name has a pointer to an entry in the symbol table</p>
 
-            </div>
+                </section>
+                <section>
+                    <b>Another Example</b>
+                    <p class="fragment fade-in">TAC greatly simplifies nested loops and if-while statements</p>
+                    <div style="display: flex;" class="fragment fade-in">
+    <div style="flex: 1; padding: 20px;">
+                            <pre><code>
+While a < b
+  If c < d Then
+    x = (y + z) * w
+  Else
+    x = (y - z) * w
+  End If
+End While
+                            </code></pre>
+    </div>
+    <div style="flex: 1; padding: 20px;">
+                            <pre><code>L1:  IfFalse a < b goto L3
+     IfFalse c < d goto L2
+     t1 = y + z
+     t2 = w * t1
+     x = t2
+     goto L1
+L2:  t2 = y - z
+     x = t2
+     t1 = y - z
+     t2 = w * t1
+     x = t2
+     goto L1
+L3:  ...</code></pre>
+    </div>
+  </div>
+</section>
+
+                <section>
+                    Before conversion to machine code, the TAC might be partitioned into <b>Basic Blocks</b>
+                    <p class="fragment fade-in">A basic block is a sequence of instructions with a single entry point and a single exit point and they are always executed together</p>
+                    <p class="fragment fade-in">This allows for better optimization</p>
+                </section>
+
+                <section>
+                    <div style="display: flex;" class="fragment fade-in">
+    <div style="flex: 1; padding: 20px;">
+                            <pre><code>L1:  IfFalse a < b goto L3
+     IfFalse c < d goto L2
+     t1 = y + z
+     t2 = w * t1
+     x = t2
+     goto L1
+L2:  t2 = y - z
+     x = t2
+     t1 = y - z
+     t2 = w * t1
+     x = t2
+     goto L1
+L3:  ...
+</code></pre>
+    </div>
+        <div style="flex: 1; padding: 20px;">
+      <pre><code>B1  IfFalse a < b goto B7
+B2  IfFalse c < d goto B5
+B3  t1 = y + z
+    t2 = w * t1
+    x = t2
+B4  goto B1
+B5  t2 = y - z
+    x = t2
+B6  t1 = y - z
+    t2 = w * t1
+    x = t2
+B6  goto B1
+B7  ...
+      </code></pre>
+    </div>
+    </div>
+    </section>
+                <section>
+                    <p class="fragment fade-in">Note that flow between different blocks is stored in a graph called the <b>Control Flow Graph</b></p>
+                    <p class="fragment fade-in">Each node is a basic block and each edge is a possible flow of control</p>
+                    <p class="fragment fade-in">Instructions inside each node are stored in a linked list, order can thus be changed with just manipulation of pointers when we optimise this IR<p>
+                </section>
+    
+                <section>
+                    <h2><b>Basic Block Optimisation</b></h2>
+                    <p class="fragment fade-in">This involves removing redundant instructions, dead code, and constant folding</p>
+                    <p class="fragment fade-in">The observable behaviour of the program should not change after these optimizations</p>
+                    <p class="fragment fade-in">... and it needs to be quick</p>
+                </section>
+
+                <section>
+                    <b>Common Subexpression Elimination</b> involves eliminates redundant calculations</p>
+                    <p class="fragment fade-in">This is done by using a directed acyclic graph (DAG) to store the results of the calculations</p>
+                    <pre><code class="fragment fade-in language-python" data-trim data-line-numbers="1-3|3-5">t1 = a + b
+t2 = a + b
+# becomes 
+t1 = a + b
+t2 = t1</code></pre>
+                </section>
+
+
+                 <section>
+                    Look at if a new expression points to the a pre-existing node with the same children and operator
+                    <p class="fragment fade-in">If it does, then that part of the tree can be reused and we can copy the value of the pre-existing node</p>
+    <div style="display: flex;" class="fragment fade-in">
+                        <div style="flex: 1; padding: 10px;">
+<pre><code>
+a = b + c
+b = a - d
+d = a - d
+
+#becomes
+
+a = b + c
+b = a - d
+d = b
+</code></pre>
+    </div>
+    <div style="flex: 1; padding: 20px;">
+                            <pre><code>
+      d     b
+       \   /
+       ( - )
+       /   \
+      a     d
+       \   /
+       ( + )
+       /   \
+      b     c
+                            </code></pre>
+    </div>
+                </section>
+                 <section>
+                    <b>Copy Propagation and Constant Folding</b> involves replacing variables with their values and evaluating constant expressions
+                    <pre><code class="fragment fade-in" data-trim data-line-numbers="1|2|3|4|5">
+p = 5               p = 5
+q = p + 3           q = 8
+r = q + 2           r = 10
+p = q * r           p = 80
+                    </code></pre>
+                </section>
+
+<section>
+                    <b> Dead Code Elimination</b> involves removing code that doesn't affect the program's output
+                    <p class="fragment fade-in">This is done by checking if the value of a variable is used after it is assigned</p>
+                    <pre class="fragment fade-in"><code class="language-cpp" data-trim data-line-numbers="|3,7">
+int foo(void) {
+  int a = 24;
+  int b = 25; /* Assignment to dead variable */
+  int c;
+  c = a * 4;
+  return c;
+  b = 24; /* Unreachable code */
+  return 0;
+}
+                    </code></pre>
+                    <p class="fragment fade-in">Removing dead code can make the program smaller and faster</p>
+                    
+</section>
+        </div>
 		</div>
 
 		<script src="dist/reveal.js"></script>
