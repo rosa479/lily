@@ -1,3 +1,5 @@
+Note : This is the older version of the repo which has not been updated with the Rust version, this repo was made for the KOSS Task
+
 # Hey!
 This repo includes a compiler for a simple language called Lily. \
 And a presentation on compilers I made using [reveal.js](https://revealjs.com/) .
