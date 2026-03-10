@@ -67,13 +67,23 @@ pub fn lex(source: &str) -> Result<Vec<Token>> {
             continue;
         }
 
-        // Single-character punctuation
+        // Single-character punctuation and operators
         let token = match chars[pos] {
             '(' => Token::OpenParen,
             ')' => Token::CloseParen,
             '{' => Token::OpenBrace,
             '}' => Token::CloseBrace,
             ';' => Token::Semicolon,
+            '~' => Token::Tilde,
+            '-' => {
+                // Check for "--" (double hyphen)
+                if pos + 1 < chars.len() && chars[pos + 1] == '-' {
+                    pos += 1; // consume the second '-'
+                    Token::DoubleHyphen
+                } else {
+                    Token::Hyphen
+                }
+            }
             other => bail!(LexError(format!(
                 "Unexpected character '{}' at position {}",
                 other, pos
@@ -115,5 +125,33 @@ mod tests {
     fn lex_error_invalid_token() {
         let source = "123abc";
         assert!(lex(source).is_err());
+    }
+
+    #[test]
+    fn lex_unary_operators() {
+        let source = "return ~(-42);";
+        let tokens = lex(source).unwrap();
+        assert_eq!(
+            tokens,
+            vec![
+                Token::KWReturn,
+                Token::Tilde,
+                Token::OpenParen,
+                Token::Hyphen,
+                Token::Constant(42),
+                Token::CloseParen,
+                Token::Semicolon,
+            ]
+        );
+    }
+
+    #[test]
+    fn lex_double_hyphen() {
+        let source = "--5";
+        let tokens = lex(source).unwrap();
+        assert_eq!(
+            tokens,
+            vec![Token::DoubleHyphen, Token::Constant(5)]
+        );
     }
 }

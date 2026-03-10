@@ -1,9 +1,17 @@
-/// Abstract Syntax Tree for the C compiler (Chapter 1).
+/// Abstract Syntax Tree for the C compiler (Chapter 1–2).
+
+/// A unary operator.
+#[derive(Debug, Clone, PartialEq)]
+pub enum UnaryOp {
+    Complement, // ~
+    Negate,     // -
+}
 
 /// An expression.
 #[derive(Debug, Clone, PartialEq)]
 pub enum Exp {
     Constant(i64),
+    Unary(UnaryOp, Box<Exp>),
 }
 
 /// A statement.

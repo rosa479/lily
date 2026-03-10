@@ -1,14 +1,32 @@
-/// Assembly intermediate representation (Chapter 1).
+/// Assembly intermediate representation (Chapter 1–2).
 ///
-/// This mirrors the target x86-64 instructions we need for chapter 1.
+/// This mirrors the target x86-64 instructions we need.
+
+/// A hardware register.
+#[derive(Debug, Clone, PartialEq)]
+pub enum Reg {
+    AX,
+    R10,
+}
 
 /// An assembly operand.
 #[derive(Debug, Clone, PartialEq)]
 pub enum Operand {
     /// An immediate integer value (e.g. $42).
     Imm(i64),
-    /// The %eax register.
-    Register,
+    /// A hardware register.
+    Reg(Reg),
+    /// A pseudo-register (temporary variable name, to be replaced later).
+    Pseudo(String),
+    /// A stack slot at an offset from %rbp.
+    Stack(i32),
+}
+
+/// An assembly unary operator.
+#[derive(Debug, Clone, PartialEq)]
+pub enum UnaryOp {
+    Neg,
+    Not,
 }
 
 /// An assembly instruction.
@@ -16,7 +34,11 @@ pub enum Operand {
 pub enum Instruction {
     /// movl src, dst
     Mov { src: Operand, dst: Operand },
-    /// ret
+    /// A unary operation (negl / notl) on a destination operand.
+    Unary { op: UnaryOp, dst: Operand },
+    /// Allocate stack space: subq $N, %rsp
+    AllocateStack(i32),
+    /// ret (with epilogue)
     Ret,
 }
 

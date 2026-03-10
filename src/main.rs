@@ -2,10 +2,15 @@ mod assembly;
 mod ast;
 mod codegen;
 mod emit;
+mod instruction_fixup;
 mod lexer;
 mod parser;
+mod replace_pseudos;
 mod settings;
+mod tacky;
+mod tacky_gen;
 mod tokens;
+mod unique_ids;
 
 use std::path::Path;
 use std::process::Command;
@@ -29,6 +34,10 @@ struct Cli {
     /// Run the lexer and parser only
     #[arg(long)]
     parse: bool,
+
+    /// Run through TACKY generation but stop before codegen
+    #[arg(long)]
+    tacky: bool,
 
     /// Run through code generation but stop before emitting assembly
     #[arg(long)]
@@ -54,6 +63,8 @@ impl Cli {
             Stage::Lex
         } else if self.parse {
             Stage::Parse
+        } else if self.tacky {
+            Stage::Tacky
         } else if self.codegen {
             Stage::Codegen
         } else if self.assembly {
@@ -117,13 +128,26 @@ fn compile(stage: Stage, preprocessed_src: &str, platform: Platform) -> Result<(
         return Ok(());
     }
 
-    // Codegen
-    let asm_ast = codegen::generate(&ast);
+    // TACKY generation (AST → TACKY IR)
+    let tacky_prog = tacky_gen::generate(&ast);
+    if stage == Stage::Tacky {
+        return Ok(());
+    }
+
+    // Code generation (TACKY → Assembly IR with pseudo-registers)
+    let asm_ast = codegen::generate(&tacky_prog);
+
+    // Replace pseudo-registers with stack slots
+    let (asm_ast, stack_size) = replace_pseudos::replace_pseudos(&asm_ast);
+
+    // Fix up invalid instructions and prepend AllocateStack
+    let asm_ast = instruction_fixup::fixup_program(&asm_ast, stack_size);
+
     if stage == Stage::Codegen {
         return Ok(());
     }
 
-    // Emit
+    // Emit assembly to .s file
     let asm_filename = replace_extension(preprocessed_src, ".s");
     emit::emit(&asm_filename, &asm_ast, platform)?;
 

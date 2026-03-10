@@ -18,6 +18,11 @@ pub enum Token {
     OpenBrace,
     CloseBrace,
     Semicolon,
+
+    // Operators (Chapter 2)
+    Hyphen,
+    DoubleHyphen,
+    Tilde,
 }
 
 impl std::fmt::Display for Token {
@@ -33,6 +38,9 @@ impl std::fmt::Display for Token {
             Token::OpenBrace => write!(f, "{{"),
             Token::CloseBrace => write!(f, "}}"),
             Token::Semicolon => write!(f, ";"),
+            Token::Hyphen => write!(f, "-"),
+            Token::DoubleHyphen => write!(f, "--"),
+            Token::Tilde => write!(f, "~"),
         }
     }
 }

@@ -1,6 +1,6 @@
 use anyhow::{bail, Result};
 
-use crate::ast::{Exp, FunctionDefinition, Program, Statement};
+use crate::ast::{Exp, FunctionDefinition, Program, Statement, UnaryOp};
 use crate::tokens::Token;
 
 /// Parser error with a descriptive message.
@@ -71,14 +71,46 @@ fn parse_identifier(stream: &mut TokenStream) -> Result<String> {
     }
 }
 
-/// Parse `<exp>` ::= `<int>`
-fn parse_exp(stream: &mut TokenStream) -> Result<Exp> {
+/// Parse `<unop>` ::= "-" | "~"
+fn parse_unop(stream: &mut TokenStream) -> Result<UnaryOp> {
     match stream.take()? {
-        Token::Constant(val) => Ok(Exp::Constant(val)),
+        Token::Hyphen => Ok(UnaryOp::Negate),
+        Token::Tilde => Ok(UnaryOp::Complement),
         other => bail!(ParseError(format!(
-            "Expected a constant but found {}",
+            "Expected a unary operator but found {}",
             other
         ))),
+    }
+}
+
+/// Parse `<exp>` ::= `<int>` | `<unop>` `<exp>` | "(" `<exp>` ")"
+fn parse_exp(stream: &mut TokenStream) -> Result<Exp> {
+    match stream.peek() {
+        Some(Token::Constant(_)) => {
+            // <int>
+            match stream.take()? {
+                Token::Constant(val) => Ok(Exp::Constant(val)),
+                _ => unreachable!(),
+            }
+        }
+        Some(Token::Hyphen) | Some(Token::Tilde) => {
+            // <unop> <exp>
+            let op = parse_unop(stream)?;
+            let inner = parse_exp(stream)?;
+            Ok(Exp::Unary(op, Box::new(inner)))
+        }
+        Some(Token::OpenParen) => {
+            // "(" <exp> ")"
+            let _ = stream.take()?; // consume '('
+            let exp = parse_exp(stream)?;
+            stream.expect(&Token::CloseParen)?;
+            Ok(exp)
+        }
+        Some(other) => bail!(ParseError(format!(
+            "Expected an expression but found {}",
+            other
+        ))),
+        None => bail!(ParseError("Unexpected end of input".to_string())),
     }
 }
 
@@ -141,6 +173,57 @@ mod tests {
         let program = parse(tokens).unwrap();
         assert_eq!(program.function.name, "main");
         assert_eq!(program.function.body, Statement::Return(Exp::Constant(42)));
+    }
+
+    #[test]
+    fn parse_unary_complement() {
+        let tokens = vec![
+            Token::KWInt,
+            Token::Identifier("main".to_string()),
+            Token::OpenParen,
+            Token::KWVoid,
+            Token::CloseParen,
+            Token::OpenBrace,
+            Token::KWReturn,
+            Token::Tilde,
+            Token::Constant(5),
+            Token::Semicolon,
+            Token::CloseBrace,
+        ];
+        let program = parse(tokens).unwrap();
+        assert_eq!(
+            program.function.body,
+            Statement::Return(Exp::Unary(UnaryOp::Complement, Box::new(Exp::Constant(5))))
+        );
+    }
+
+    #[test]
+    fn parse_nested_unary() {
+        // ~(-42)
+        let tokens = vec![
+            Token::KWInt,
+            Token::Identifier("main".to_string()),
+            Token::OpenParen,
+            Token::KWVoid,
+            Token::CloseParen,
+            Token::OpenBrace,
+            Token::KWReturn,
+            Token::Tilde,
+            Token::OpenParen,
+            Token::Hyphen,
+            Token::Constant(42),
+            Token::CloseParen,
+            Token::Semicolon,
+            Token::CloseBrace,
+        ];
+        let program = parse(tokens).unwrap();
+        assert_eq!(
+            program.function.body,
+            Statement::Return(Exp::Unary(
+                UnaryOp::Complement,
+                Box::new(Exp::Unary(UnaryOp::Negate, Box::new(Exp::Constant(42))))
+            ))
+        );
     }
 
     #[test]

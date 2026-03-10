@@ -11,6 +11,7 @@ pub enum Platform {
 pub enum Stage {
     Lex,
     Parse,
+    Tacky,
     Codegen,
     Assembly,
     Executable,
