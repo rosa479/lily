@@ -1,0 +1,9 @@
+[package]
+name = "lily"
+version = "0.1.0"
+edition = "2021"
+description = "A C compiler written in Rust"
+
+[dependencies]
+clap = { version = "4", features = ["derive"] }
+anyhow = "1"
